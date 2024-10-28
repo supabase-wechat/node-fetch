@@ -15,7 +15,9 @@ var globalObject = getGlobal();
 
 export const fetch = globalObject.fetch;
 
-export default globalObject.fetch.bind(globalObject);
+// The original `globalObject.fetch.bind(globalObject)` will throw.
+// `globalObject.fetch` will be `undefined` in wx environment and be replaced by custom fetch implementation
+export default globalObject.fetch;
 
 export const Headers = globalObject.Headers;
 export const Request = globalObject.Request;
