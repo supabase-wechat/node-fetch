@@ -53,3 +53,47 @@ The correct way is to dynamic import `node-fetch` only if required. Before these
 ```javascript
 // export default globalObject.fetch.bind(globalObject);
 ```
+
+### Status
+
+This repo is archived. To make @supabase/supabase-js not be broken by this issue in wx envronment, just add a postinstall script and force modify this file.
+
+```javascript
+/**
+ * patch-node-fetch
+ * fixes: TypeError: Cannot read property 'bind' of undefined
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const targetFile = path.resolve(__dirname, '../node_modules/@supabase/node-fetch/browser.js');
+
+if (!fs.existsSync(targetFile)) {
+  console.error('File not found:', targetFile);
+  console.error('Run `yarn install` first');
+  process.exit(1);
+}
+
+try {
+  let content = fs.readFileSync(targetFile, 'utf-8');
+
+  if (content.includes('// export default globalObject.fetch.bind(globalObject);') &&
+      content.includes('export default globalObject.fetch;')) {
+    console.log('Patch is made already');
+    process.exit(0);
+  }
+
+  content = content.replace(
+    'export default globalObject.fetch.bind(globalObject);',
+    '// export default globalObject.fetch.bind(globalObject);\nexport default globalObject.fetch;'
+  );
+
+  fs.writeFileSync(targetFile, content, 'utf-8');
+  console.log('Patch is made to:', targetFile);
+  console.log('Fixed: TypeError: Cannot read property \'bind\' of undefined');
+} catch (error) {
+  console.error('Error while trying to patch:', error);
+  process.exit(1);
+}
+```
